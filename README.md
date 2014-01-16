@@ -1,4 +1,4 @@
-# Circles
+# Knobs
 
 ![Circles](http://lugolabs.com/static/circles.png)
 

@@ -15,13 +15,12 @@
     text       - the text to display after the number (optional, nothing will show if not specified)
     colors     - an array of colors, with the first item coloring the full circle 
                  (optional, it will be `['#EEE', '#F00']` if not specified)
-    duration   - value in ms of animation duration; (optional, defaults to 500); 
-                 if `null` is passed, the animation will not run
+
 
 */
 
 (function() {
-  var Circles = window.Circles = function(options) {
+  var Knobs = window.Knobs = function(options) {
     var elId = options.id;
     this._el = document.getElementById(elId);
     
@@ -31,140 +30,65 @@
 
     this._radius         = options.radius;
     this._percentage     = options.percentage;
-    this._text           = options.text; // #3
-    this._number         = options.number || this._percentage;
     this._strokeWidth    = options.width  || 10;
     this._colors         = options.colors || ['#EEE', '#F00'];
-    this._interval       = 16;
-    this._textWrpClass   = 'circles-text-wrp';
-    this._textClass      = 'circles-text';
-    this._numberClass    = 'circles-number';
     
-    this._confirmAnimation(options.duration);
-
     this._svgSize        = this._radius * 2;
     this._radiusAdjusted = this._radius - (this._strokeWidth / 2);
     this._start          = -Math.PI / 180 * 90;
     this._startPrecise   = this._precise(this._start);
     this._circ           = endAngleRad - this._start;
-    this._el.innerHTML   = this._wrap(this._generateSvg() + this._generateText());
+    this._el.innerHTML   = this._wrap(this._generateSvg());
 
-    if (this._canAnimate) this._animate();
+    this._clicked         = false;
+    
+    this._updateArc();
+    this._setListeners();
   };
 
-  Circles.prototype = {
-    VERSION: '0.0.3',
+  Knobs.prototype = {
+    VERSION: '0.0.1',
 
-    _confirmAnimation: function(duration) {
-      if (duration === null) {
-        this._canAnimate = false;
-        return;
-      }
+    _updateArc: function() {
+        
+        var path     = this._el.getElementsByTagName('path')[1];
+        
+        path.setAttribute('d', this._calculatePath(this._percentage, true));
 
-      duration = duration || 500;
-
-      var step     = duration / this._interval,
-        pathFactor = this._percentage / step,
-        numberFactor = this._number / step;
-
-      if (this._percentage <= (1 + pathFactor)) {
-        this._canAnimate = false;
-      } else {
-        this._canAnimate   = true;
-        this._pathFactor   = pathFactor;
-        this._numberFactor = numberFactor;
-      }
-    },
-
-    _animate: function() {
-      var i      = 1,
-        self     = this,
-        path     = this._el.getElementsByTagName('path')[1],
-        numberEl = this._getNumberElement(),
-
-        isInt    = this._number % 1 === 0,
-
-        requestAnimFrame = window.requestAnimationFrame       ||
-                           window.webkitRequestAnimationFrame ||
-                           window.mozRequestAnimationFrame    ||
-                           window.oRequestAnimationFrame      ||
-                           window.msRequestAnimationFrame     ||
-                           function (callback) {
-                               setTimeout(callback, self._interval);
-                           },
-
-        animate = function() {
-          var percentage   = self._pathFactor * i,
-            nextPercentage = self._pathFactor * (i + 1),
-            number         = self._numberFactor * i,
-            canContinue    = true;
-          if (isInt) {
-            number = Math.round(number);
-          }
-          if (nextPercentage > self._percentage) {
-            percentage  = self._percentage;
-            number      = self._number;
-            canContinue = false;
-          }
-          if (percentage > self._percentage) return;
-          path.setAttribute('d', self._calculatePath(percentage, true));
-          numberEl.innerHTML = self._calculateNumber(number);
-          i++;
-          if (canContinue) requestAnimFrame(animate);
-        };
-
-      requestAnimFrame(animate);
-    },
-
-    _getNumberElement: function() {
-      var divs = this._el.getElementsByTagName('span');
-      for (var i = 0, l = divs.length; i < l; i++) {
-        if (divs[i].className === this._numberClass) return divs[i];
-      }
     },
 
     _wrap: function(content) {
-      return '<div class="circles-wrp" style="position:relative; display:inline-block;">' + content + '</div>';
-    },
-
-    _generateText: function() {
-      var html =  '<div class="' + this._textWrpClass + '" style="position:absolute; top:0; left:0; text-align:center; width:100%;' +
-        ' font-size:' + this._radius * .7 + 'px; height:' + this._svgSize + 'px; line-height:' + this._svgSize + 'px;">' + 
-        this._calculateNumber(this._canAnimate ? 0 : this._number);
-      if (this._text) {
-        html += '<span class="' + this._textClass + '">' + this._text + '</span>';
-      }
-      html += '</div>';
-      return html;
-    },
-
-    _calculateNumber: function(number) {
-      var parts = (number + '').split('.'),
-        html = '<span class="' + this._numberClass + '">' + parts[0];
-      if (parts.length > 1) {
-        html += '.<span style="font-size:.4em">' + parts[1].substring(0, 2) + '</span>';
-      }
-      return html + '</span>';
+    
+      return '<div class="Knobs-wrp" style="position:relative; display:inline-block;">' + content + '</div>';
+    
     },
 
     _generateSvg: function() {
+      
       return '<svg width="' + this._svgSize + '" height="' + this._svgSize + '">' + 
-        this._generatePath(100, false, this._colors[0]) + 
-        this._generatePath(this._canAnimate ? 1 : this._percentage, true, this._colors[1]) + 
+      this._generatePath(100, false, this._colors[0]) + 
+      this._generatePath(this._canAnimate ? 1 : this._percentage, true, this._colors[1]) + 
       '</svg>';
+
     },
 
     _generatePath: function(percentage, open, color) {
+    
       return '<path fill="transparent" stroke="' + color + '" stroke-width="' + this._strokeWidth + '" d="' + this._calculatePath(percentage, open) + '"/>';
+    
     },
 
     _calculatePath: function(percentage, open) {
-      var end      = this._start + ((percentage / 100) * this._circ),
-        endPrecise = this._precise(end);
+    
+      var end = this._start + ((percentage / 100) * this._circ),
+      endPrecise = this._precise(end);
+      
       return this._arc(endPrecise, open);
+    
     },
 
     _arc: function(end, open) {
+    
       var endAdjusted = end - 0.001,
         longArc       = end - this._startPrecise < Math.PI ? 0 : 1;
 
@@ -182,14 +106,58 @@
         this._radius + this._radiusAdjusted * Math.sin(endAdjusted),
         open ? '' : 'Z' // close
       ].join(' ');
+
     },
 
     _precise: function(value) {
+      
       return Math.round(value * 1000) / 1000;
+    
+    },
+
+    _setListeners: function() {
+
+        var self = this;
+        
+        var onMouseClick = function(ev) {
+          self._clicked = true;        
+        }
+
+        var onMouseMove = function(ev) {
+
+          if (self._clicked === true) {
+            var x = ev.pageX - self._el.offsetLeft;
+            var y = ev.pageY - self._el.offsetTop;
+            
+            x = -(x - self._radius);
+            y = (y - self._radius);
+                       
+            self._percentage = ((Math.atan2(x,y) + Math.PI)*50) / Math.PI ;
+
+            path = self._el.getElementsByTagName('path')[1];     
+            self._updateArc();
+
+          }
+
+        }
+
+        var onMouseUp = function(ev) {        
+          self._clicked = false;
+
+        }        
+        
+        this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mousedown', onMouseClick , false );
+        this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mousemove', onMouseMove , false );
+        this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mouseup', onMouseUp , false );
+        this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mousein', onMouseUp , false );
     }
+
+  
   };
 
-  Circles.create = function(options) {
-    return new Circles(options);
+  Knobs.create = function(options) {
+    
+    return new Knobs(options);
+  
   };
 })();
