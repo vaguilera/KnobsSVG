@@ -1,6 +1,6 @@
-# Knobs
+# KnobsSVG
 
-![KnobsSVG](http://vaguilera.com/knobsSVG/)
+![KnobsSVG](http://vaguilera.com/projects/knobsSVG/)
 
 Lightwheight JavaScript library that generates circular Knobs in SVG. 
 
