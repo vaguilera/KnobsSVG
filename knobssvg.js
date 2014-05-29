@@ -1,9 +1,11 @@
-// circles
-// copyright Artan Sinani
+// KnobsSVG
+// copyright Victor Aguilera
+// forked from:
+// Artan Sinani
 // https://github.com/lugolabs/circles
 
 /*
-  Lightwheight JavaScript library that generates circular graphs in SVG.
+  Lightwheight JavaScript library that generates interactive circular knobs in SVG.
 
   Call Circles.create(options) with the following options:
 
@@ -12,7 +14,6 @@
     radius     - the radius of the circles
     width      - the width of the ring (optional, has value 10, if not specified)
     number     - the number to display at the centre of the graph (optional, the percentage will show if not specified)
-    text       - the text to display after the number (optional, nothing will show if not specified)
     colors     - an array of colors, with the first item coloring the full circle 
                  (optional, it will be `['#EEE', '#F00']` if not specified)
 
@@ -20,9 +21,9 @@
 */
 
 (function() {
-  var Knobs = window.Knobs = function(options) {
-    var elId = options.id;
-    this._el = document.getElementById(elId);
+  var KnobsSVG = window.KnobsSVG = function(options) {
+    this.elId = options.id;
+    this._el = document.getElementById(this.elId);
     
     if (this._el === null) return;
     
@@ -30,6 +31,7 @@
 
     this._radius         = options.radius;
     this._percentage     = options.percentage;
+	this._prevpercent	 = options.percentage;
     this._strokeWidth    = options.width  || 10;
     this._colors         = options.colors || ['#EEE', '#F00'];
     
@@ -41,12 +43,13 @@
     this._el.innerHTML   = this._wrap(this._generateSvg());
 
     this._clicked         = false;
+	this._onChange		 = null; 
     
     this._updateArc();
     this._setListeners();
   };
 
-  Knobs.prototype = {
+  KnobsSVG.prototype = {
     VERSION: '0.0.1',
 
     _updateArc: function() {
@@ -120,7 +123,7 @@
         var self = this;
         
         var onMouseClick = function(ev) {
-          self._clicked = true;        
+          self._clicked = true;        		  
         }
 
         var onMouseMove = function(ev) {
@@ -131,7 +134,7 @@
             
             x = -(x - self._radius);
             y = (y - self._radius);
-                       
+                    		    
             self._percentage = ((Math.atan2(x,y) + Math.PI)*50) / Math.PI ;
 
             path = self._el.getElementsByTagName('path')[1];     
@@ -142,7 +145,15 @@
         }
 
         var onMouseUp = function(ev) {        
-          self._clicked = false;
+         
+			if (self._clicked) { 
+				if (self._prevpercent !== self._percentage) { 
+					self._prevpercent = self._percentage;
+					self._onChange(Math.round(self._percentage));				
+				}
+			}
+			
+			self._clicked = false;
 
         }        
         
@@ -150,14 +161,23 @@
         this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mousemove', onMouseMove , false );
         this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mouseup', onMouseUp , false );
         this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mousein', onMouseUp , false );
-    }
+        document.getElementById(this.elId).addEventListener( 'mouseout', function(event) { 
+          if ((event.relatedTarget || event.toElement) == this.parentNode) onMouseUp(event);
+        } , false );
+    },
+	
+	onChange:  function(callback) {
+		
+		this._onChange = callback;	
+	
+	}
 
   
   };
 
-  Knobs.create = function(options) {
+  KnobsSVG.create = function(options) {
     
-    return new Knobs(options);
+    return new KnobsSVG(options);
   
   };
 })();

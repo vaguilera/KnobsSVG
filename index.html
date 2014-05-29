@@ -1,6 +1,6 @@
 <html>
 <head>
-	<title>Circles</title>
+	<title>KnobsSVG</title>
 	<style>
 		#canvas .circle {
 			display: inline-block;
@@ -17,7 +17,7 @@
 		<div class="circle" id="circles-5"></div>
 	</div>
 
-	<script src="../circles.js"></script>
+	<script src="knobssvg.js"></script>
 	<script>
 		var colors = [
 			['#D3B6C6', '#4B253A'], ['#FCE6A4', '#EFB917'], ['#BEE3F7', '#45AEEA'], ['#F8F9B6', '#D2D558'], ['#F4BCBF', '#D43A43']
@@ -27,14 +27,17 @@
 			var child = document.getElementById('circles-' + i),
 				percentage = 31.42 + (i * 9.84);
 				
-			Knobs.create({
+			KnobsSVG.create({
 				id:         child.id,
 				percentage: percentage,
 				radius:     50,
-				width:      28,
-				
-				text:       '%',
+				width:      28,				
 				colors:     colors[i - 1]
+				
+			}).onChange(function(value) {
+				
+				console.log(value);
+			
 			});
 		}
 	</script>
