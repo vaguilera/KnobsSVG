@@ -1,6 +1,6 @@
 # KnobsSVG
 
-![KnobsSVG](http://vaguilera.com/projects/knobsSVG/)
+![KnobsSVG](http://vaguilera.com/projects/knobssvg/)
 
 Lightwheight JavaScript library that generates circular Knobs in SVG. 
 
@@ -11,7 +11,7 @@ Include the `knobssvg.js` file in your HTML file. There are no dependencies.
 Create a graph by calling:
 
 ```js
-Circles.create({
+KnobsSVG.create({
 	id:         'circles-1',
 	percentage: 43,
 	radius:     60,
