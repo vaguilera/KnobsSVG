@@ -158,12 +158,8 @@
         }        
         
         this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mousedown', onMouseClick , false );
-        this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mousemove', onMouseMove , false );
-        this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mouseup', onMouseUp , false );
-        this._el.getElementsByClassName('Knobs-wrp')[0].addEventListener( 'mousein', onMouseUp , false );
-        document.getElementById(this.elId).addEventListener( 'mouseout', function(event) { 
-          if ((event.relatedTarget || event.toElement) == this.parentNode) onMouseUp(event);
-        } , false );
+        document.body.addEventListener( 'mousemove', onMouseMove , false );
+	document.body.addEventListener( 'mouseup', onMouseUp , false );
     },
 	
 	onChange:  function(callback) {
